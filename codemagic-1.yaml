@@ -1,0 +1,17 @@
+workflows:
+  central-de-dados-android:
+    name: Central de Dados - APK
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      java: 17
+    scripts:
+      - name: Extrair projeto Android
+        script: |
+          unzip -o Central_de_Dados_Android_Projeto.zip
+      - name: Compilar APK
+        script: |
+          cd CentralDadosAndroid
+          gradle assembleDebug --stacktrace
+    artifacts:
+      - CentralDadosAndroid/app/build/outputs/apk/debug/*.apk
