@@ -8,7 +8,7 @@ workflows:
     scripts:
       - name: Extrair projeto Android
         script: |
-          unzip -o Central_de_Dados_Android_Projeto-2.zip
+         unzip -o App_Central_Dados.zip
       - name: Compilar APK
         script: |
           cd CentralDadosAndroid
