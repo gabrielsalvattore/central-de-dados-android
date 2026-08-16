@@ -1,0 +1,47 @@
+workflows:
+  central-de-dados-android-definitivo:
+    name: Central de Dados - APK Definitivo
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      java: 17
+    scripts:
+      - name: Extrair projeto Android
+        script: |
+          unzip -o App_Central_Dados.zip
+      - name: Criar chave permanente
+        script: |
+          keytool -genkeypair -v \
+            -keystore salvatore-release.jks \
+            -storetype JKS \
+            -storepass 728b9199b8326e1b45fee0a068b9c6f7 \
+            -keypass 728b9199b8326e1b45fee0a068b9c6f7 \
+            -alias salvatore \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Salvatore, O=Central de Dados, C=BR"
+          printf '%s\n' \
+            'ARQUIVO: salvatore-release.jks' \
+            'ALIAS: salvatore' \
+            'SENHA: 728b9199b8326e1b45fee0a068b9c6f7' \
+            'IMPORTANTE: guarde este arquivo e a chave JKS para todas as futuras atualizações.' \
+            > CHAVE_ASSINATURA_LEIA.txt
+      - name: Compilar e assinar APK definitivo
+        script: |
+          cd CentralDadosAndroid
+          gradle assembleRelease --stacktrace
+          UNSIGNED_APK=$(find app/build/outputs/apk/release -name '*unsigned.apk' | head -n 1)
+          APKSIGNER_PATH=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort | tail -n 1)
+          "$APKSIGNER_PATH" sign \
+            --ks "$CM_BUILD_DIR/salvatore-release.jks" \
+            --ks-key-alias salvatore \
+            --ks-pass pass:728b9199b8326e1b45fee0a068b9c6f7 \
+            --key-pass pass:728b9199b8326e1b45fee0a068b9c6f7 \
+            --out "$CM_BUILD_DIR/Central_de_Dados_Salvatore_v1.0.apk" \
+            "$UNSIGNED_APK"
+          "$APKSIGNER_PATH" verify --verbose "$CM_BUILD_DIR/Central_de_Dados_Salvatore_v1.0.apk"
+    artifacts:
+      - Central_de_Dados_Salvatore_v1.0.apk
+      - salvatore-release.jks
+      - CHAVE_ASSINATURA_LEIA.txt
